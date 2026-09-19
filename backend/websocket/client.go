@@ -1,47 +1,51 @@
 package websocket
 
 import (
-	"net/http"
+    "net/http"
 
-	"github.com/gin-gonic/gin"
-	"github.com/gorilla/websocket"
+    "github.com/gin-gonic/gin"
+    "github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{
-	CheckOrigin: func(r *http.Request) bool {
-		origin := r.Header.Get("Origin")
+func NewUpgrader(frontendURL string) websocket.Upgrader {
+    return websocket.Upgrader{
+        CheckOrigin: func(r *http.Request) bool {
+            origin := r.Header.Get("Origin")
 
-		return origin == "http://localhost:5173"
-	},
+            return origin == frontendURL
+        },
+    }
 }
 
-func HandleConnection(hub *Hub) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		pollID := c.Param("id")
+func HandleConnection(hub *Hub, frontendURL string) gin.HandlerFunc {
+    upgrader := NewUpgrader(frontendURL)
 
-		conn, err := upgrader.Upgrade(
-			c.Writer,
-			c.Request,
-			nil,
-		)
+    return func(c *gin.Context) {
+        pollID := c.Param("id")
 
-		if err != nil {
-			return
-		}
+        conn, err := upgrader.Upgrade(
+            c.Writer,
+            c.Request,
+            nil,
+        )
 
-		client := &Client{
-			Conn:   conn,
-			PollID: pollID,
-		}
+        if err != nil {
+            return
+        }
 
-		hub.AddClient(client)
+        client := &Client{
+            Conn:   conn,
+            PollID: pollID,
+        }
 
-		defer hub.RemoveClient(client)
+        hub.AddClient(client)
 
-		for {
-			if _, _, err := conn.ReadMessage(); err != nil {
-				break
-			}
-		}
-	}
+        defer hub.RemoveClient(client)
+
+        for {
+            if _, _, err := conn.ReadMessage(); err != nil {
+                break
+            }
+        }
+    }
 }

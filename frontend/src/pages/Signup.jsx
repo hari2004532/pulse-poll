@@ -11,40 +11,44 @@ function Signup() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
-    async function handleSubmit(event) {
+    const handleSubmit = async (event) => {
         event.preventDefault();
-
         setError("");
-        setLoading(true);
+
+        if (!name.trim() || !email.trim() || !password) {
+            setError("Please fill in all fields.");
+            return;
+        }
+
+        if (password.length < 6) {
+            setError("Password must be at least 6 characters.");
+            return;
+        }
 
         try {
-            await signup(name, email, password);
+            setLoading(true);
+
+            await signup(
+                name.trim(),
+                email.trim(),
+                password
+            );
+
             navigate("/login");
         } catch (err) {
             setError(err.message);
         } finally {
             setLoading(false);
         }
-    }
+    };
 
     return (
-        <div className="auth-page">
-            <div className="auth-card">
-                <div className="brand">
-                    <div className="brand-icon">P</div>
-                    <h1>PulsePoll</h1>
+        <div className="page">
+            <div className="card auth-card">
+                <div className="card-header">
+                    <h1>Create your account</h1>
+                    <p>Start creating interactive live polls.</p>
                 </div>
-
-                <h2>Create your account</h2>
-                <p className="subtitle">
-                    Start creating interactive live polls.
-                </p>
-
-                {error && (
-                    <div className="error-message">
-                        {error}
-                    </div>
-                )}
 
                 <form onSubmit={handleSubmit}>
                     <label htmlFor="name">Name</label>
@@ -55,7 +59,7 @@ function Signup() {
                         placeholder="Your name"
                         value={name}
                         onChange={(event) => setName(event.target.value)}
-                        required
+                        autoComplete="name"
                     />
 
                     <label htmlFor="email">Email</label>
@@ -66,7 +70,7 @@ function Signup() {
                         placeholder="you@example.com"
                         value={email}
                         onChange={(event) => setEmail(event.target.value)}
-                        required
+                        autoComplete="email"
                     />
 
                     <label htmlFor="password">Password</label>
@@ -77,13 +81,18 @@ function Signup() {
                         placeholder="At least 6 characters"
                         value={password}
                         onChange={(event) => setPassword(event.target.value)}
-                        minLength={6}
-                        required
+                        autoComplete="new-password"
                     />
 
+                    {error && (
+                        <div className="error-message">
+                            {error}
+                        </div>
+                    )}
+
                     <button
-                        className="primary-button"
                         type="submit"
+                        className="primary-button"
                         disabled={loading}
                     >
                         {loading ? "Creating..." : "Create account"}

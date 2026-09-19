@@ -139,7 +139,7 @@ func main() {
 	protected.POST("/polls/:id/vote", voteHandler.Vote)
 
 	// WebSocket
-	router.GET("/ws/polls/:id", ws.HandleConnection(hub))
+	router.GET("/ws/polls/:id", ws.HandleConnection(hub, cfg.FrontendURL))
 
 	log.Println("PulsePoll backend running on port", cfg.Port)
 
